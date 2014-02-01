@@ -3,6 +3,7 @@
 #include <types/vxTypes.h>
 #include <WPILib.h>
 #include <time.h>
+#include "DriveSystem.h"
 
 class RobotCode2014 : public SimpleRobot
 {
@@ -123,11 +124,10 @@ public:
 	AnalogChannel				myArmPotentiometer;
 	Compressor					myCompressor;
 	DigitalInput				myPistonOpen, myPistonClosed;
+	DriveSystem					myDriveSystem;
 	DoubleSolenoid				myPiston1, myPiston2, myPiston3, myPiston4;
 	Joystick					myDriveJoystick;
-	PIDController				myArmPID, myLeftFrontMecanumPID;
-	Jaguar						myLeftFrontDriveTalon, myLeftRearDriveTalon, myRightFrontDriveTalon, myRightRearDriveTalon;
-	RobotDrive					myEWHSRobot;
+	PIDController				myArmPID;
 	Talon						myArmTalon;
 	AxisCamera	 				&myAxisCamera;
 	DriverStationLCD			*myDriverStationLCD;

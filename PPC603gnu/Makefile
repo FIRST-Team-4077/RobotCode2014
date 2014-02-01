@@ -120,6 +120,10 @@ RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Autonomous.o : $(PRJ_ROOT_DIR)/A
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
+RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/DriveSystem.o : $(PRJ_ROOT_DIR)/DriveSystem.cpp $(FORCE_FILE_BUILD)
+	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
+
+
 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Electronics.o : $(PRJ_ROOT_DIR)/Electronics.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
@@ -141,6 +145,7 @@ RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/RobotCode2014.o : $(PRJ_ROOT_DIR
 
 
 OBJECTS_RobotCode2014 = RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Autonomous.o \
+	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/DriveSystem.o \
 	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Electronics.o \
 	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Mechanisms.o \
 	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/OperatorControl.o \
@@ -159,8 +164,9 @@ RobotCode2014/$(MODE_DIR)/RobotCode2014_clean :
 
 force : 
 
-DEP_FILES := RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Autonomous.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Electronics.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Mechanisms.d \
-	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/OperatorControl.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/PollSensors.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/RobotCode2014.d
+DEP_FILES := RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Autonomous.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/DriveSystem.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Electronics.d \
+	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/Mechanisms.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/OperatorControl.d RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/PollSensors.d \
+	 RobotCode2014/$(MODE_DIR)/Objects/RobotCode2014/RobotCode2014.d
 -include $(DEP_FILES)
 
 
