@@ -21,11 +21,11 @@ public:
 
 				Drive Joystick
 
-	X Axis = Rotational Movement
-	Y Axis = Horizontal Movement
+	X Axis = Horizontal Movement
+	Y Axis = Vertical Movement
 	Z Axis = Rotational Movement
-	Trigger = Null
-	Button 2 = Null
+	Trigger = Shoot
+	Button 2 = Run arm wheels
 	Button 3 = Null
 	Button 4 = Null
 	Button 5 = Null
@@ -46,7 +46,7 @@ public:
 	static const uint32_t FRONT_RIGHT_DRIVE_MOTOR_PORT = 3;
 	static const uint32_t REAR_RIGHT_DRIVE_MOTOR_PORT = 4;
 	static const uint32_t ARM_TALON_CHANNEL = 5;
-	//static const uint32_t UNDEFINED = 6;
+	static const uint32_t WHEEL_TALON_CHANNEL = 6;
 	//static const uint32_t UNDEFINED = 7;
 	//static const uint32_t UNDEFINED = 8;
 	//static const uint32_t UNDEFINED = 9;
@@ -104,18 +104,20 @@ public:
 
 			//  PID Variables
 
-	float P;
-	float I;
-	float D;
+	static const float fltArmP = 0.01;
+	static const float fltArmI = 0.000001;
+	static const float fltArmD = 0.0;
 
 			//  Defines when to stop motor if no commands received
 
 	static const float MOTOR_EXPIRATION_TIMEOUT_AUTONOMOUS = 10.0;
 	static const float MOTOR_EXPIRATION_TIMEOUT_OPERATOR_CONTROL = 10.0;
 
-	float fltDriveXAxis, fltDriveYAxis, fltDriveZAxis, fltDriveTwistAxis, fltExponent, fltDeadBand, fltNormalizedDriveZAxis;
-	
-	bool isDriveTrigger, isDriveB2, isDriveB3, isDriveB4, isDriveB5, isDriveB6, isDriveB7, isDriveB8, isDriveB9, isDriveB10, isDriveB11, isDriveB12;
+	int intArmPosition;
+
+	float fltDriveXAxis, fltDriveYAxis, fltDriveZAxis, fltDriveTwistAxis, fltExponent, fltDeadBand, fltNormalizedDriveZAxis, fltArmAngle;
+
+	bool isDriveTrigger, isDriveB2, isDriveB3, isDriveB4, isDriveB5, isDriveB6, isDriveB7, isDriveB8, isDriveB9, isDriveB10, isDriveB11, isDriveB12, isArmLoop;
 
 	const char* compressorState;
 
@@ -128,7 +130,8 @@ public:
 	DoubleSolenoid				myPiston1, myPiston2, myPiston3, myPiston4;
 	Joystick					myDriveJoystick;
 	PIDController				myArmPID;
-	Talon						myArmTalon;
+	Talon						myArmTalon, myWheelTalon;
+	Timer						myAutonomousTimer;
 	AxisCamera	 				&myAxisCamera;
 	DriverStationLCD			*myDriverStationLCD;
 
@@ -140,6 +143,8 @@ public:
 	void Autonomous();//in Autonomous
 
 	void ArmControl();//in Mechanisms
+
+	float ConvertToAngle(float fltAnalogInput);//in Mechanisms
 
 	void LCDUpdate(); //in Electronics
 
