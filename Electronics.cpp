@@ -39,10 +39,10 @@ void RobotCode2014::LCDUpdate()
 	myDriverStationLCD->Clear();
 	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line1, "Arm Angle = %f", Value);
 	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line2, "Arm Angle = %f", fltArmAngle);
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line3, "Arm Position = %i", intArmPosition);
-	//myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line4, "Twist-Axis = %f", fltDriveTwistAxis);
-	//myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line5, "Exponent = %f", fltExponent);
-	//myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line6, "DeadBand = %f", fltDeadBand);
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line3, "%f", myLeftFrontDriveEncoder.GetRate());
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line4, "%f", myLeftRearDriveEncoder.GetRate());
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line5, "%f", myRightFrontDriveEncoder.GetRate());
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line6, "%f", myRightRearDriveEncoder.GetRate());
 	myDriverStationLCD->UpdateLCD();
 }
 
@@ -85,7 +85,7 @@ void RobotCode2014::PollSensors()
 	isDriveB11 = myDriveJoystick.GetRawButton(11);
 	isDriveB12 = myDriveJoystick.GetRawButton(12);
 
-	fltArmAngle = (90 / 1.7) * (myArmPotentiometer.GetAverageVoltage() - 0.45);
+	fltArmAngle = (90.0 / 320.0) * (-myArmPotentiometer.GetValue() + 830.0);
 
 	if(myCompressor.Enabled())
 	{
@@ -93,5 +93,6 @@ void RobotCode2014::PollSensors()
 	} else {
 		compressorState = "Compressor Stopped";
 	}
-	
+
+	fltShootTimer = myShootTimer.Get();
 }

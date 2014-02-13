@@ -2,8 +2,10 @@
 #include <math.h>
 #include <types/vxTypes.h>
 #include <WPILib.h>
-#include <time.h>
 #include "DriveSystem.h"
+#include "Vision/RGBImage.h"
+#include "Vision/BinaryImage.h"
+
 
 class RobotCode2014 : public SimpleRobot
 {
@@ -75,14 +77,14 @@ public:
 			//	Define digital I/O ports
 
 	static const uint32_t PNEUMATIC_PRESSURE_SWITCH = 1;
-	static const uint32_t PNEUMATIC_PRESSURE_OPEN = 2;
-	static const uint32_t PNEUMATIC_PRESSURE_CLOSED = 3;
-	//static const uint32_t UNDEFINED = 4;
-	//static const uint32_t UNDEFINED = 5;
-	//static const uint32_t UNDEFINED = 6;
-	//static const uint32_t UNDEFINED = 7;
-	//static const uint32_t UNDEFINED = 8;
-	//static const uint32_t UNDEFINED = 9;
+	static const uint32_t ENCODER_1_CHANNEL_A = 2;
+	static const uint32_t ENCODER_4_CHANNEL_A = 3;
+	static const uint32_t ENCODER_2_CHANNEL_A = 4;
+	static const uint32_t ENCODER_3_CHANNEL_A = 5;
+	static const uint32_t ENCODER_1_CHANNEL_B = 6;
+	static const uint32_t ENCODER_4_CHANNEL_B = 7;
+	static const uint32_t ENCODER_2_CHANNEL_B = 8;
+	static const uint32_t ENCODER_3_CHANNEL_B = 9;
 	//static const uint32_t UNDEFINED = 10;
 	//static const uint32_t UNDEFINED = 11;
 	//static const uint32_t UNDEFINED = 12;
@@ -104,18 +106,59 @@ public:
 
 			//  PID Variables
 
-	static const float fltArmP = 0.01;
-	static const float fltArmI = 0.000001;
+	static const float fltArmP = -0.01;
+	static const float fltArmI = -0.0005;
 	static const float fltArmD = 0.0;
 
 			//  Defines when to stop motor if no commands received
 
 	static const float MOTOR_EXPIRATION_TIMEOUT_AUTONOMOUS = 10.0;
 	static const float MOTOR_EXPIRATION_TIMEOUT_OPERATOR_CONTROL = 10.0;
-
+	
+			//Initialize VisionSystem
+			//Camera constants used for distance calculation
+	#define Y_IMAGE_RES 480		//X Image resolution in pixels, should be 120, 240, or 480
+	//#define VIEW_ANGLE 49		//Axis M1013
+	//#define VIEW_ANGLE 41.7		//Axis 206 camera
+	#define VIEW_ANGLE 37.4		//Axis M1011 camera
+	#define PI 3.141592653
+	//Score limits used for target indentification
+	#define RECTANGULARITY_LIMIT 40
+	#define ASPECT_RATIO_LIMIT 55
+	//Score limits used for hot targer determination
+	#define TAPE_WIDTH_LIMIT 50
+	#define VERTICAL_SCORE_LIMIT 50
+	#define LR_SCORE_LIMIT 50
+	//Minimum aroa of particles to be considered
+	#define AREA_MINIMUM 150
+	//Maximum number fo particles to process
+	#define MAX_PARTICLES 8
+	
+	struct Scores
+	{
+		double rectangularity;
+		double aspectRatioVertical;
+		double aspectRatioHorizontal;
+	};
+	struct TargetReport
+	{
+		int verticalIndex;
+		int horizontalIndex;
+		bool Hot;
+		double totalScore;
+		double leftScore;
+		double rightScore;
+		double tapeWidthScore;
+		double verticalScore;
+	};
+	//set up vision detection
+	int verticalTargets[MAX_PARTICLES];
+	int horizontalTargets[MAX_PARTICLES];
+	int verticalTargetCount, horizontalTargetCount;
+	
 	int intArmPosition;
 
-	float fltDriveXAxis, fltDriveYAxis, fltDriveZAxis, fltDriveTwistAxis, fltExponent, fltDeadBand, fltNormalizedDriveZAxis, fltArmAngle;
+	float fltDriveXAxis, fltDriveYAxis, fltDriveZAxis, fltDriveTwistAxis, fltExponent, fltDeadBand, fltNormalizedDriveZAxis, fltArmAngle, fltShootTimer;
 
 	bool isDriveTrigger, isDriveB2, isDriveB3, isDriveB4, isDriveB5, isDriveB6, isDriveB7, isDriveB8, isDriveB9, isDriveB10, isDriveB11, isDriveB12, isArmLoop;
 
@@ -125,17 +168,29 @@ public:
 
 	AnalogChannel				myArmPotentiometer;
 	Compressor					myCompressor;
-	DigitalInput				myPistonOpen, myPistonClosed;
-	DriveSystem					myDriveSystem;
 	DoubleSolenoid				myPiston1, myPiston2, myPiston3, myPiston4;
+	Encoder						myDistanceEncoder, myLeftFrontDriveEncoder, myLeftRearDriveEncoder, myRightFrontDriveEncoder, myRightRearDriveEncoder;
 	Joystick					myDriveJoystick;
 	PIDController				myArmPID;
-	Talon						myArmTalon, myWheelTalon;
-	Timer						myAutonomousTimer;
+	Talon						myArmTalon, myWheelTalon, myLeftFrontDriveTalon, myLeftRearDriveTalon, myRightFrontDriveTalon, myRightRearDriveTalon;
+	Timer						myAutonomousTimer, myShootTimer;
+	DriveSystem					myDriveSystem;
 	AxisCamera	 				&myAxisCamera;
 	DriverStationLCD			*myDriverStationLCD;
 
 
+	/*	//in VisionSystem (to be added)
+	double computeDistance (BinaryImage *image, ParticleAnaylsisReport *report);
+	double scoreAspectRatio(BinaryImage *image, ParticleAnalysisReport *report, bool vertical);
+	bool scoreCompare(Scores scores, bool veritcal);
+	double scoreRectangularity (ParticleAnalysisReport *report);
+	double ratioToScore(double ratio);
+	bool hotOrNot(TargetReport myTarget);
+	void LCDUpdate();
+	void CheckUltrasonicRange();
+	void CameraAngle();
+	void visionProcessing(bool  tgtDetected);*/
+	
 	RobotCode2014();
 
 	void AdjustZAxisInput();//in Electronics

@@ -12,16 +12,19 @@ public:
 
 	float fltDistanceTravelled;
 
-	static const float P = 1;
-	static const float I = 1;
-	static const float D = 0;
+	static const float P = 1.0;
+	static const float I = 0.0;
+	static const float D = 0.0;
+	static const float Pr = -1.0;
+	static const float Ir = 0.0;
+	static const float Dr = 0.0;
 	static const float fltPeriod = 0.05;
 
-	Encoder myDistanceEncoder, myLeftFrontDriveEncoder, myLeftRearDriveEncoder, myRightFrontDriveEncoder, myRightRearDriveEncoder;
-	Talon myLeftFrontDriveTalon, myLeftRearDriveTalon, myRightFrontDriveTalon, myRightRearDriveTalon;
 	PIDController myLeftFrontPIDController, myLeftRearPIDController, myRightFrontPIDController, myRightRearPIDController;
+	Encoder *myDistanceEncoderLocal, *myLeftFrontDriveEncoderLocal, *myLeftRearDriveEncoderLocal, *myRightFrontDriveEncoderLocal, *myRightRearDriveEncoderLocal;
+	Talon *myLeftFrontDriveTalonLocal, *myLeftRearDriveTalonLocal, *myRightFrontDriveTalonLocal, *myRightRearDriveTalonLocal;
 
-	DriveSystem(UINT32 FrontLeftDriveMotorPort, UINT32 RearLeftDriveMotorPort, UINT32 FrontRightDriveMotorPort, UINT32 RearRightDriveMotorPort, bool isPIDEnable = false);
+	DriveSystem(Talon *myLeftFrontDriveTalon, Talon *myLeftRearDriveTalon, Talon *myRightFrontDriveTalon, Talon *myRightRearDriveTalon, Encoder *myDistanceEncoder, Encoder *myLeftFrontDriveEncoder, Encoder *myLeftRearDriveEncoder, Encoder *myRightFrontDriveEncoder, Encoder *myRightRearDriveEncoder, bool isPIDEnable = false);
 
 	void MecanumDrive(float x, float y, float rotation, float gyroAngle = 0.0);
 
@@ -35,7 +38,7 @@ public:
 
 private:
 
-	UINT32 intFrontLeftDriveMotorPort, intRearLeftDriveMotorPort, intFrontRightDriveMotorPort, intRearRightDriveMotorPort;
+	UINT32 intFrontLeftDriveMotor, intRearLeftDriveMotor, intFrontRightDriveMotor, intRearRightDriveMotor;
 
 };
 
