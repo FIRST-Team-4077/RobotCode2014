@@ -20,6 +20,8 @@ void RobotCode2014::OperatorControl()
 
 	if (myCompressor.Enabled() == false) myCompressor.Start();
 
+	isAutonomous = false;
+	intArmPosition = 3;
 		// Runs code loop for operator control
 
 	while (IsOperatorControl() && IsEnabled())
@@ -35,15 +37,15 @@ void RobotCode2014::OperatorControl()
 
 			// Drives chassis
 
-		myDriveSystem.MecanumDrive(fltDriveXAxis, fltDriveYAxis, fltNormalizedDriveZAxis);
+		myDriveSystem.MecanumDrive(fltDriveXAxis, fltDriveYAxis, fltNormalizedDriveZAxis, false);
+
+		// Controls the angle the arm is at
+
+		ArmControl();
 
 			// Shoots ball if trigger is pressed, retracts mechanism if not pressed
 
 		Shoot(isDriveTrigger);
-
-			// Controls the angle the arm is at
-
-		ArmControl();
 
 			// Updates LCD screen on driver station
 

@@ -8,9 +8,9 @@ void RobotCode2014::AdjustZAxisInput()
 	fltNormalizedDriveZAxis = fltDriveZAxis;
 	Limit(fltNormalizedDriveZAxis);
 	//fltExponent = (fltDriveTwistAxis + 2); Changes fltExponent based on Twist Axis
-	fltExponent = 2;
+	fltExponent = 3;
 	//fltDeadBand = .2 - ((fltDriveTwistAxis + 1) * .1); Changes fltDeadBand based on Twist Axis
-	fltDeadBand = .2;
+	fltDeadBand = .1;
 	if(fltNormalizedDriveZAxis >= 0.0){
 		fltNormalizedDriveZAxis = ((1 + fltDeadBand) * fltNormalizedDriveZAxis) - fltDeadBand;
 		if (fltNormalizedDriveZAxis <= 0.0)
@@ -28,21 +28,18 @@ void RobotCode2014::AdjustZAxisInput()
 		Limit(fltNormalizedDriveZAxis);
 		fltNormalizedDriveZAxis = - pow(fltNormalizedDriveZAxis, fltExponent);
 	}
-	fltNormalizedDriveZAxis = 0.75 * fltNormalizedDriveZAxis;
-} 
+	//if
+	fltNormalizedDriveZAxis = 0.4 * fltNormalizedDriveZAxis;
+}
 
-// Clears then updates the LCD screen displayed on the driver station
+		// Clears then updates the LCD screen displayed on the driver station
 
 void RobotCode2014::LCDUpdate()
 {
-	float Value = myArmPotentiometer.GetValue();
+	float i = myArmPotentiometer.GetValue();
 	myDriverStationLCD->Clear();
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line1, "Arm Angle = %f", Value);
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line2, "Arm Angle = %f", fltArmAngle);
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line3, "%f", myLeftFrontDriveEncoder.GetRate());
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line4, "%f", myLeftRearDriveEncoder.GetRate());
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line5, "%f", myRightFrontDriveEncoder.GetRate());
-	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line6, "%f", myRightRearDriveEncoder.GetRate());
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line1, "Arm Angle = %f", fltArmAngle);
+	myDriverStationLCD->PrintfLine(DriverStationLCD::kUser_Line2, "Arm Pot = %f", i);
 	myDriverStationLCD->UpdateLCD();
 }
 
@@ -85,7 +82,7 @@ void RobotCode2014::PollSensors()
 	isDriveB11 = myDriveJoystick.GetRawButton(11);
 	isDriveB12 = myDriveJoystick.GetRawButton(12);
 
-	fltArmAngle = (90.0 / 320.0) * (-myArmPotentiometer.GetValue() + 830.0);
+	fltArmAngle = (90.0 / 320.0) * (myArmPotentiometer.GetValue() - 530.0);
 
 	if(myCompressor.Enabled())
 	{

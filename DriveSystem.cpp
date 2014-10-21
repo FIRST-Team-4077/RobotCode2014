@@ -1,13 +1,12 @@
 #include "DriveSystem.h"
 
-DriveSystem::DriveSystem(Talon *myLeftFrontDriveTalon, Talon *myLeftRearDriveTalon, Talon *myRightFrontDriveTalon, Talon *myRightRearDriveTalon, Encoder *myDistanceEncoder, Encoder *myLeftFrontDriveEncoder, Encoder *myLeftRearDriveEncoder, Encoder *myRightFrontDriveEncoder, Encoder *myRightRearDriveEncoder, bool isPIDEnable)
+DriveSystem::DriveSystem(Talon *myLeftFrontDriveTalon, Talon *myLeftRearDriveTalon, Talon *myRightFrontDriveTalon, Talon *myRightRearDriveTalon, /*Encoder *myDistanceEncoder,*/ Encoder *myLeftFrontDriveEncoder, Encoder *myLeftRearDriveEncoder, Encoder *myRightFrontDriveEncoder, Encoder *myRightRearDriveEncoder, bool isPIDEnable)
 :myLeftFrontPIDController(P, I, D, myLeftFrontDriveEncoder, myLeftFrontDriveTalon, fltPeriod),
 myLeftRearPIDController(P, I, D, myLeftRearDriveEncoder, myLeftRearDriveTalon, fltPeriod),
-myRightFrontPIDController(Pr, Ir, Dr, myRightFrontDriveEncoder, myRightFrontDriveTalon, fltPeriod),
-myRightRearPIDController(Pr, Ir, Dr, myRightRearDriveEncoder, myRightRearDriveTalon, fltPeriod)
+myRightFrontPIDController(P, I, D, myRightFrontDriveEncoder, myRightFrontDriveTalon, fltPeriod),
+myRightRearPIDController(P, I, D, myRightRearDriveEncoder, myRightRearDriveTalon, fltPeriod)
 {
 
-	myDistanceEncoderLocal = myDistanceEncoder;
 	myLeftFrontDriveEncoderLocal = myLeftFrontDriveEncoder;
 	myLeftRearDriveEncoderLocal = myLeftRearDriveEncoder;
 	myRightFrontDriveEncoderLocal = myRightFrontDriveEncoder;
@@ -22,10 +21,10 @@ myRightRearPIDController(Pr, Ir, Dr, myRightRearDriveEncoder, myRightRearDriveTa
 	if(isPIDEnable)
 	{
 
-		myLeftFrontPIDController.SetInputRange(-2000.0, 2000.0);
-		myLeftRearPIDController.SetInputRange(-2000.0, 2000.0);
-		myRightFrontPIDController.SetInputRange(-2000.0, 2000.0);
-		myRightRearPIDController.SetInputRange(-2000.0, 2000.0);
+		myLeftFrontPIDController.SetInputRange(-2300.0, 2300.0);
+		myLeftRearPIDController.SetInputRange(-2300.0, 2300.0);
+		myRightFrontPIDController.SetInputRange(-2300.0, 2300.0);
+		myRightRearPIDController.SetInputRange(-2300.0, 2300.0);
 
 		myLeftFrontPIDController.SetOutputRange(-1.0, 1.0);
 		myLeftRearPIDController.SetOutputRange(-1.0, 1.0);
@@ -53,14 +52,14 @@ myRightRearPIDController(Pr, Ir, Dr, myRightRearDriveEncoder, myRightRearDriveTa
 
 	// Computes motor velocities for use by a mecanum type drivetrain
 
-void DriveSystem::MecanumDrive(float x, float y, float rotation, float gyroAngle)
+void DriveSystem::MecanumDrive(float x, float y, float rotation, bool PIDOverride, float gyroAngle)
 {
 	double xIn = x;
 	double yIn = y;
 		// Negate y for the joystick.
 	yIn = -yIn;
 		// Compenstate for gyro angle.
-	RotateVector(xIn, yIn, gyroAngle);
+	//RotateVector(xIn, yIn, gyroAngle);
 
 		// Creates an array to store individual motor speeds in, uses fancy math
 
@@ -71,21 +70,85 @@ void DriveSystem::MecanumDrive(float x, float y, float rotation, float gyroAngle
 	wheelSpeeds[intRearRightDriveMotor] = xIn + yIn - rotation;
 
 		// Sets the speed of the motors to the calculated speed
-		// If PID mode is enabled, calculated speeds are sent to a PID controller
+		// If PID mode is enabled, calculated speeds are sent to a Pqqqqqqqqqqqqqqqqqqw2211ID controller
 
-	if(isPIDMode)
+	if(PIDOverride == false)
 	{
-		myLeftFrontPIDController.SetSetpoint(wheelSpeeds[intFrontLeftDriveMotor]);
-		myLeftRearPIDController.SetSetpoint(wheelSpeeds[intRearLeftDriveMotor]);
-		myRightFrontPIDController.SetSetpoint(-wheelSpeeds[intFrontRightDriveMotor]);
-		myRightRearPIDController.SetSetpoint(-wheelSpeeds[intRearRightDriveMotor]);
-	}
-	else
-	{
+		if(isPIDMode)
+		{
+			myLeftFrontPIDController.SetPID(1.5, 0.0, 0.1);
+			myLeftRearPIDController.SetPID(1.5, 0.0, 0.1);
+			myRightFrontPIDController.SetPID(1.5, 0.0, 0.1);
+			myRightRearPIDController.SetPID(1.5, 0.0, 0.1);
+			myLeftFrontPIDController.Enable();
+			myLeftRearPIDController.Enable();
+			myRightFrontPIDController.Enable();
+			myRightRearPIDController.Enable();
+			myLeftFrontPIDController.SetSetpoint(wheelSpeeds[intFrontLeftDriveMotor]);
+			myLeftRearPIDController.SetSetpoint(wheelSpeeds[intRearLeftDriveMotor]);
+			myRightFrontPIDController.SetSetpoint(-wheelSpeeds[intFrontRightDriveMotor]);
+			myRightRearPIDController.SetSetpoint(-wheelSpeeds[intRearRightDriveMotor]);
+		} else {
+			myLeftFrontDriveTalonLocal->Set(wheelSpeeds[intFrontLeftDriveMotor]);
+			myLeftRearDriveTalonLocal->Set(wheelSpeeds[intRearLeftDriveMotor]);
+			myRightFrontDriveTalonLocal->Set(-wheelSpeeds[intFrontRightDriveMotor]);
+			myRightRearDriveTalonLocal->Set(-wheelSpeeds[intRearRightDriveMotor]);
+		}
+	} else {
+		
+		myLeftFrontPIDController.Disable();
+		myLeftRearPIDController.Disable();
+		myRightFrontPIDController.Disable();
+		myRightRearPIDController.Disable();
+		
 		myLeftFrontDriveTalonLocal->Set(wheelSpeeds[intFrontLeftDriveMotor]);
 		myLeftRearDriveTalonLocal->Set(wheelSpeeds[intRearLeftDriveMotor]);
 		myRightFrontDriveTalonLocal->Set(-wheelSpeeds[intFrontRightDriveMotor]);
 		myRightRearDriveTalonLocal->Set(-wheelSpeeds[intRearRightDriveMotor]);
+		/*
+		if(x*x > y*y)
+		{
+			if(x > 0.75)
+			{
+				// right
+				myLeftFrontDriveTalonLocal->Set(1.0);
+				myLeftRearDriveTalonLocal->Set(-1.0);
+				myRightFrontDriveTalonLocal->Set(1.0);
+				myRightRearDriveTalonLocal->Set(-1.0);
+			} else if(x < -0.75) {
+				// left
+				myLeftFrontDriveTalonLocal->Set(-1.0);
+				myLeftRearDriveTalonLocal->Set(1.0);
+				myRightFrontDriveTalonLocal->Set(-1.0);
+				myRightRearDriveTalonLocal->Set(1.0);
+			} else {
+				myLeftFrontDriveTalonLocal->Set(0.0);
+				myLeftRearDriveTalonLocal->Set(0.0);
+				myRightFrontDriveTalonLocal->Set(0.0);
+				myRightRearDriveTalonLocal->Set(0.0);
+			}
+		} else {
+			if(y > 0.75)
+			{
+				// backwards
+				myLeftFrontDriveTalonLocal->Set(-1.0);
+				myLeftRearDriveTalonLocal->Set(-1.0);
+				myRightFrontDriveTalonLocal->Set(1.0);
+				myRightRearDriveTalonLocal->Set(1.0);
+			} else if(y < -0.75) {
+				// forwards
+				myLeftFrontDriveTalonLocal->Set(1.0);
+				myLeftRearDriveTalonLocal->Set(1.0);
+				myRightFrontDriveTalonLocal->Set(-1.0);
+				myRightRearDriveTalonLocal->Set(-1.0);
+			} else {
+				myLeftFrontDriveTalonLocal->Set(0.0);
+				myLeftRearDriveTalonLocal->Set(0.0);
+				myRightFrontDriveTalonLocal->Set(0.0);
+				myRightRearDriveTalonLocal->Set(0.0);
+			}
+		}
+	*/
 	}
 }
 
@@ -99,19 +162,19 @@ bool DriveSystem::DriveDistance(float fltXDistance, float fltYDistance)
 	if(isDistanceInit == false)
 	{
 			// Set the scaled value for the encoder
-		myDistanceEncoderLocal->SetDistancePerPulse(1);
-		myDistanceEncoderLocal->Start();
+		//myDistanceEncoderLocal->SetDistancePerPulse(1);
+		//myDistanceEncoderLocal->Start();
 	}
 		// If the distance needed to drive is greater than the distance driven, the ribit drives forward
 		// Utilizes MecanumDrive function
-	if(myDistanceEncoderLocal->GetDistance() < fltXDistance)
+	/*if(myDistanceEncoderLocal->GetDistance() < fltXDistance)
 	{
 		MecanumDrive(0.5, 0.0, 0.0);
 		isDistanceReached = false;
 	} else {
 		MecanumDrive(0.0, 0.0, 0.0);
 		isDistanceReached = true;		
-	}
+	}*/
 		// Returns if the distance has been reached
 	return isDistanceReached;
 }
@@ -121,10 +184,10 @@ bool DriveSystem::DriveDistance(float fltXDistance, float fltYDistance)
 
 void DriveSystem::DirectDrive(float fltLeftFrontESCVelocity, float fltLeftRearESCVelocity, float fltRightFrontESCVelocity, float fltRightRearESCVelocity)
 {
-	myLeftFrontDriveTalonLocal->Set(fltLeftFrontESCVelocity);
-	myLeftRearDriveTalonLocal->Set(fltLeftRearESCVelocity);
-	myRightFrontDriveTalonLocal->Set(fltRightFrontESCVelocity);
-	myRightRearDriveTalonLocal->Set(fltRightRearESCVelocity);
+	myLeftFrontPIDController.SetSetpoint(fltLeftFrontESCVelocity);
+	myLeftRearPIDController.SetSetpoint(fltLeftRearESCVelocity);
+	myRightFrontPIDController.SetSetpoint(fltRightFrontESCVelocity);
+	myRightRearPIDController.SetSetpoint(fltRightRearESCVelocity);
 }
 
 	// Corrects the angle to drive at based on a gyro input using fancy math

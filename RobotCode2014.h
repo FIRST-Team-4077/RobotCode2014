@@ -1,8 +1,9 @@
-#include <Joystick.h>
-#include <math.h>
-#include <types/vxTypes.h>
-#include <WPILib.h>
+#include "WPILib.h"
+#include "Math.h"
 #include "DriveSystem.h"
+//#include "types/vxTypes.h"
+//#include "Timer.h"
+#include "Joystick.h"
 #include "Vision/RGBImage.h"
 #include "Vision/BinaryImage.h"
 
@@ -28,16 +29,16 @@ public:
 	Z Axis = Rotational Movement
 	Trigger = Shoot
 	Button 2 = Run arm wheels
-	Button 3 = Null
-	Button 4 = Null
-	Button 5 = Null
-	Button 6 = Null
-	Button 7 = Null
-	Button 8 = Null
-	Button 9 = Null
-	Button 10 = Null
-	Button 11 = Null
-	Button 12 =  Null
+	Button 3 = Move arm up
+	Button 4 = Camera angle up
+	Button 5 = Move arm down
+	Button 6 = Camera angle down
+	Button 7 = Set arm to shoot mode
+	Button 8 = Reverse arm wheels
+	Button 9 = Set arm to ball pickup mode
+	Button 10 = Weak shooting
+	Button 11 = Set arm to initial Position
+	Button 12 = Strong shooting
 
 	 */
 
@@ -49,7 +50,7 @@ public:
 	static const uint32_t REAR_RIGHT_DRIVE_MOTOR_PORT = 4;
 	static const uint32_t ARM_TALON_CHANNEL = 5;
 	static const uint32_t WHEEL_TALON_CHANNEL = 6;
-	//static const uint32_t UNDEFINED = 7;
+	static const uint32_t CAMERA_SERVO_CHANNEL = 7;
 	//static const uint32_t UNDEFINED = 8;
 	//static const uint32_t UNDEFINED = 9;
 	//static const uint32_t UNDEFINED = 10;
@@ -106,21 +107,23 @@ public:
 
 			//  PID Variables
 
-	static const float fltArmP = -0.01;
-	static const float fltArmI = -0.0005;
-	static const float fltArmD = 0.0;
+	static const float fltArmP = 0.01;
+	static const float fltArmI = 0.0;
+	static const float fltArmD = 0.001;
+
+	//static const float fltArmP = -0.02;
+	//static const float fltArmI = 0.2;
+	//static const float fltArmD = 0.0;
 
 			//  Defines when to stop motor if no commands received
 
 	static const float MOTOR_EXPIRATION_TIMEOUT_AUTONOMOUS = 10.0;
 	static const float MOTOR_EXPIRATION_TIMEOUT_OPERATOR_CONTROL = 10.0;
-	
-			//Initialize VisionSystem
-			//Camera constants used for distance calculation
-	#define Y_IMAGE_RES 480		//X Image resolution in pixels, should be 120, 240, or 480
-	//#define VIEW_ANGLE 49		//Axis M1013
-	//#define VIEW_ANGLE 41.7		//Axis 206 camera
-	#define VIEW_ANGLE 37.4		//Axis M1011 camera
+
+	//Initialize VisionSystem
+	//Camera constants used for distance calculation
+	#define Y_IMAGE_RES 480	 //X Image resolution in pixels, should be 120, 240, or 480
+	#define VIEW_ANGLE 37.4	 //Axis M1011 camera
 	#define PI 3.141592653
 	//Score limits used for target indentification
 	#define RECTANGULARITY_LIMIT 40
@@ -133,13 +136,14 @@ public:
 	#define AREA_MINIMUM 150
 	//Maximum number fo particles to process
 	#define MAX_PARTICLES 8
-	
+
 	struct Scores
 	{
 		double rectangularity;
 		double aspectRatioVertical;
 		double aspectRatioHorizontal;
 	};
+
 	struct TargetReport
 	{
 		int verticalIndex;
@@ -151,16 +155,22 @@ public:
 		double tapeWidthScore;
 		double verticalScore;
 	};
+	
+	Scores 						*myScores;
+	TargetReport 				myTarget;
+
+
 	//set up vision detection
 	int verticalTargets[MAX_PARTICLES];
 	int horizontalTargets[MAX_PARTICLES];
 	int verticalTargetCount, horizontalTargetCount;
+	bool foundHotTarget;
 	
-	int intArmPosition;
+	int intArmPosition, intShootingMode;
 
 	float fltDriveXAxis, fltDriveYAxis, fltDriveZAxis, fltDriveTwistAxis, fltExponent, fltDeadBand, fltNormalizedDriveZAxis, fltArmAngle, fltShootTimer;
 
-	bool isDriveTrigger, isDriveB2, isDriveB3, isDriveB4, isDriveB5, isDriveB6, isDriveB7, isDriveB8, isDriveB9, isDriveB10, isDriveB11, isDriveB12, isArmLoop;
+	bool isDriveTrigger, isDriveB2, isDriveB3, isDriveB4, isDriveB5, isDriveB6, isDriveB7, isDriveB8, isDriveB9, isDriveB10, isDriveB11, isDriveB12, isArmLoop, isShootLoop, isShootLockout, isAutonomous;
 
 	const char* compressorState;
 
@@ -169,12 +179,14 @@ public:
 	AnalogChannel				myArmPotentiometer;
 	Compressor					myCompressor;
 	DoubleSolenoid				myPiston1, myPiston2, myPiston3, myPiston4;
-	Encoder						myDistanceEncoder, myLeftFrontDriveEncoder, myLeftRearDriveEncoder, myRightFrontDriveEncoder, myRightRearDriveEncoder;
+	Encoder						myLeftFrontDriveEncoder, myLeftRearDriveEncoder, myRightFrontDriveEncoder, myRightRearDriveEncoder;
 	Joystick					myDriveJoystick;
 	PIDController				myArmPID;
+	Servo						myCameraServo;
 	Talon						myArmTalon, myWheelTalon, myLeftFrontDriveTalon, myLeftRearDriveTalon, myRightFrontDriveTalon, myRightRearDriveTalon;
-	Timer						myAutonomousTimer, myShootTimer;
+	Timer						myAutonomousTimer, myArmTimer, myShootTimer;
 	DriveSystem					myDriveSystem;
+	Threshold 					myThreshold;
 	AxisCamera	 				&myAxisCamera;
 	DriverStationLCD			*myDriverStationLCD;
 
@@ -193,13 +205,17 @@ public:
 	
 	RobotCode2014();
 
-	void AdjustZAxisInput();//in Electronics
+	void AdjustZAxisInput(); //in Electronics
 
-	void Autonomous();//in Autonomous
+	void Autonomous(); //in Autonomous
 
-	void ArmControl();//in Mechanisms
+	void ArmControl(); //in Mechanisms
 
-	float ConvertToAngle(float fltAnalogInput);//in Mechanisms
+	double computeDistance (BinaryImage *image, ParticleAnalysisReport *report); //in VisionSystem 
+
+	float ConvertToAngle(float fltAnalogInput); //in Mechanisms
+
+	bool hotOrNot (TargetReport myTarget); //in VisionSystem
 
 	void LCDUpdate(); //in Electronics
 
@@ -209,6 +225,16 @@ public:
 
 	void PollSensors();	//in PollSensors
 
+	double ratioToScore(double ratio); //in VisionSystem
+
+	double scoreAspectRatio(BinaryImage *image, ParticleAnalysisReport *report, bool vertical); //in VisionSystem
+
+	bool scoreCompare(Scores scores, bool vertical); //in VisionSystem
+
+	double scoreRectangularity(ParticleAnalysisReport *report); //in VisionSystem
+
 	void Shoot(bool fire); //in Mechanisms
+	
+	void visionProcessing(); //in VisionSystem 
 
 };
